@@ -1,2 +1,3 @@
-python-telegram-bot
+python-telegram-bot[ext] # Ensure 'ext' extra is included for Application builder etc.
 python-dotenv
+aiohttp # Add the web server library
