@@ -1,7 +1,8 @@
-i6mport os
+import os
 import json
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.error import BadRequest
 from dotenv import load_dotenv
@@ -58,13 +59,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"User {user.id} ({user.username}) started the bot.")
 
     welcome_text = (
-        f"Hello! 👋 This bot provides the **[Your Topic] Guide**, exclusively for subscribers of **{TARGET_CHANNEL_USERNAME}**.\n\n"
-        f"➡️ Click the button below to verify your subscription and get the guide.\n\n"
-        f"*If you haven't subscribed yet, please join **{TARGET_CHANNEL_USERNAME}** first, then click the button.*"
+        f"Привет! 👋 Этот бот предоставляет **[Ваша Тема] Руководство**, эксклюзивно для подписчиков **{TARGET_CHANNEL_USERNAME}**.\n\n"
+        f"➡️ Нажмите кнопку ниже, чтобы подтвердить подписку и получить руководство.\n\n"
+        f"*Если вы еще не подписаны, пожалуйста, сначала присоединитесь к **{TARGET_CHANNEL_USERNAME}**, затем нажмите кнопку.*"
     )
 
     keyboard = [
-        [InlineKeyboardButton("✅ Verify Subscription & Get Guide", callback_data="check_subscription")]
+        [InlineKeyboardButton("✅ Подтвердить подписку и получить руководство", callback_data="check_subscription")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -81,13 +82,13 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     logger.info(f"Received callback query from user {user_id} ({username}) with data: {callback_data}")
 
     # Answer the callback query to remove the "loading" state on the button
-    await query.answer("Checking subscription...")
+    await query.answer("Проверка подписки...")
 
     if callback_data == "check_subscription":
         # The channel membership check has been removed as per user request.
         # The bot will now send the guide to anyone who clicks the button.
 
-        await query.message.reply_text("Thanks for your interest! ✅", parse_mode=ParseMode.MARKDOWN)
+        await query.message.reply_text("Спасибо за ваш интерес! ✅", parse_mode=ParseMode.MARKDOWN)
 
         if GUIDE_REFERENCE:
             if REFERENCE_TYPE == "file_id":
@@ -95,26 +96,26 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     await context.bot.send_document(chat_id=user_id, document=GUIDE_REFERENCE)
                 except Exception as e:
                     logger.error(f"Error sending document to user {user_id}: {e}")
-                    await query.message.reply_text("Sorry, there was an error sending the guide. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
+                    await query.message.reply_text("Извините, произошла ошибка при отправке руководства. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
 
             elif REFERENCE_TYPE == "url":
-                await query.message.reply_text(f"Here is the guide link you requested:\n{GUIDE_REFERENCE}", parse_mode=ParseMode.MARKDOWN)
+                await query.message.reply_text(f"Вот ссылка на руководство, которую вы запросили:\n{GUIDE_REFERENCE}", parse_mode=ParseMode.MARKDOWN)
             else:
                 logger.warning(f"Invalid REFERENCE_TYPE: {REFERENCE_TYPE}")
-                await query.message.reply_text("Sorry, the guide is currently unavailable. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
+                await query.message.reply_text("Извините, руководство в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
         else:
             logger.info("No guide has been set yet.")
-            await query.message.reply_text("Sorry, the guide is currently unavailable. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
+            await query.message.reply_text("Извините, руководство в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
 
     else:
         logger.warning(f"Received unknown callback data: {callback_data}")
-        await query.answer("Unknown action.")
+        await query.answer("Неизвестное действие.")
 
 async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Allows an admin to set the guide file (PDF) or link."""
     user = update.effective_user
     if not is_admin(user.id):
-        await update.message.reply_text("❌ Sorry, this command is only available to bot administrators.")
+        await update.message.reply_text("❌ Извините, эта команда доступна только администраторам бота.")
         return
 
     if update.message.reply_to_message:
@@ -126,12 +127,12 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 save_guide_config(file_id, "file_id")
                 GUIDE_REFERENCE = file_id
                 REFERENCE_TYPE = "file_id"
-                await update.message.reply_text("✅ Guide updated successfully. I will now send this PDF to verified subscribers.")
+                await update.message.reply_text("✅ Руководство успешно обновлено. Теперь я буду отправлять этот PDF проверенным подписчикам.")
                 logger.info(f"Admin {user.id} set guide to file_id: {file_id}")
             else:
-                await update.message.reply_text("❌ Please reply to a PDF file message with `/setguide`.")
+                await update.message.reply_text("❌ Пожалуйста, ответьте на сообщение с PDF-файлом, используя `/setguide`.")
         else:
-            await update.message.reply_text("❌ Please reply to a PDF file message with `/setguide`.")
+            await update.message.reply_text("❌ Пожалуйста, ответьте на сообщение с PDF-файлом, используя `/setguide`.")
     elif context.args:
         # Method 2: Using URL
         url = context.args[0]
@@ -140,17 +141,17 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             save_guide_config(url, "url")
             GUIDE_REFERENCE = url
             REFERENCE_TYPE = "url"
-            await update.message.reply_text("✅ Guide link updated successfully. I will now send this link to verified subscribers.")
+            await update.message.reply_text("✅ Ссылка на руководство успешно обновлена. Теперь я буду отправлять эту ссылку проверенным подписчикам.")
             logger.info(f"Admin {user.id} set guide to URL: {url}")
         else:
-            await update.message.reply_text("❌ Please provide a valid URL with `/setguide <URL>`.")
+            await update.message.reply_text("❌ Пожалуйста, укажите действительный URL, используя `/setguide <URL>`.")
     else:
-        await update.message.reply_text("Usage: Reply to a PDF message with `/setguide` or use `/setguide <URL>`.")
+        await update.message.reply_text("Использование: Ответьте на сообщение с PDF, используя `/setguide`, или используйте `/setguide <URL>`.")
 
 def main() -> None:
     """Start the bot."""
     if BOT_TOKEN == "YOUR_BOT_TOKEN_HERE" or TARGET_CHANNEL_USERNAME == "@YourChannelUsername":
-        logger.warning("Please replace placeholders for BOT_TOKEN and TARGET_CHANNEL_USERNAME in the script or set environment variables.")
+        logger.warning("Пожалуйста, замените заполнители для BOT_TOKEN и TARGET_CHANNEL_USERNAME в скрипте или установите переменные окружения.")
         # You might want to exit here if configuration is missing
         # return
 
