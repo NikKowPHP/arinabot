@@ -116,6 +116,7 @@ This document outlines the steps required to develop, test, and deploy the Teleg
     *   [ ] Test `/setguide` with incorrect usage (no reply/URL, reply to non-PDF): Are the correct error messages shown?
     *   [ ] After setting a guide (PDF/URL), test the normal user flow again: Is the *correct* guide sent?
     *   [ ] Test setting a PDF, then setting a URL, then setting another PDF: Does it correctly switch between methods?
+    *   [ ] Test `/settopic <topic>`: Does it store the topic and confirm?
 *   [ ] **Persistence Testing:**
     *   [ ] Set a guide using `/setguide`.
     *   [ ] Restart the bot.
