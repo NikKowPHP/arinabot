@@ -76,14 +76,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Make sure TARGET_CHANNEL_USERNAME is defined or handled if missing
     target_channel = os.environ.get("TARGET_CHANNEL_USERNAME", "the channel")  # Example fallback
     welcome_text = (
-        f"Привет! 👋 Этот бот предоставляет **{GUIDE_TOPIC}** Руководство, эксклюзивно для подписчиков **{target_channel}**.\n\n"
-        f"➡️ Нажмите кнопку ниже, чтобы подтвердить подписку и получить руководство.\n\n"
+        f"Привет! 👋 Этот бот предоставляет гайд '**{GUIDE_TOPIC}**' , эксклюзивно для подписчиков **{target_channel}**.\n\n"
+        f"➡️ Нажмите кнопку ниже, чтобы подтвердить подписку и получить гайд.\n\n"
         f"*Если вы еще не подписаны, пожалуйста, сначала присоединитесь к **{target_channel}**, затем нажмите кнопку.*"
     )
     keyboard = [
         [
             InlineKeyboardButton(
-                "✅ Подтвердить подписку и получить руководство",
+                "✅ Подтвердить подписку и получить гайд",
                 callback_data="check_subscription",
             )
         ]
@@ -114,13 +114,13 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     await query.message.reply_text("Извините, произошла ошибка при отправке руководства. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
             elif REFERENCE_TYPE == "url":
                 escaped_guide_reference = escape_markdown(GUIDE_REFERENCE, version=2)
-                await query.message.reply_text(f"Вот ссылка на руководство, которую вы запросили:\n{escaped_guide_reference}", parse_mode=ParseMode.MARKDOWN_V2)
+                await query.message.reply_text(f"Вот ссылка на гайд, которую вы запросили:\n{escaped_guide_reference}", parse_mode=ParseMode.MARKDOWN_V2)
             else:
                 logger.warning(f"Invalid REFERENCE_TYPE: {REFERENCE_TYPE}")
-                await query.message.reply_text("Извините, руководство в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
+                await query.message.reply_text("Извините, гайд в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
         else:
             logger.info("No guide has been set yet.")
-            await query.message.reply_text("Извините, руководство в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
+            await query.message.reply_text("Извините, гайд в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
     else:
         logger.warning(f"Received unknown callback data: {callback_data}")
         await query.answer("Неизвестное действие.")
@@ -142,7 +142,7 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 save_guide_config(file_id, "file_id")
                 GUIDE_REFERENCE = file_id # Update global
                 REFERENCE_TYPE = "file_id" # Update global
-                await update.message.reply_text("✅ Руководство (PDF) успешно обновлено.")
+                await update.message.reply_text("✅ гайд (PDF) успешно обновлено.")
                 logger.info(f"Admin {user.id} set guide to file_id: {file_id}")
             else:
                 await update.message.reply_text("❌ Пожалуйста, ответьте на сообщение с PDF-файлом, используя `/setguide`.")
@@ -154,7 +154,7 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             save_guide_config(url, "url")
             GUIDE_REFERENCE = url # Update global
             REFERENCE_TYPE = "url" # Update global
-            await update.message.reply_text("✅ Ссылка на руководство успешно обновлена.")
+            await update.message.reply_text("✅ Ссылка на гайд успешно обновлена.")
             logger.info(f"Admin {user.id} set guide to URL: {url}")
         else:
             await update.message.reply_text("❌ Пожалуйста, укажите действительный URL, используя `/setguide <URL>`.")
