@@ -6,6 +6,8 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.error import BadRequest
 from dotenv import load_dotenv
+import traceback # Import the traceback module
+from telegram.helpers import escape_markdown # Import escape_markdown from correct location
 
 # Load environment variables from .env file
 load_dotenv()
@@ -100,7 +102,9 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     await query.message.reply_text("Извините, произошла ошибка при отправке руководства. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
 
             elif REFERENCE_TYPE == "url":
-                await query.message.reply_text(f"Вот ссылка на руководство, которую вы запросили:\n{GUIDE_REFERENCE}", parse_mode=ParseMode.MARKDOWN)
+                # Escape special characters in the URL for Markdown
+                escaped_guide_reference = escape_markdown(GUIDE_REFERENCE, version=2)
+                await query.message.reply_text(f"Вот ссылка на руководство, которую вы запросили:\n{escaped_guide_reference}", parse_mode=ParseMode.MARKDOWN_V2) # Use MARKDOWN_V2
             else:
                 logger.warning(f"Invalid REFERENCE_TYPE: {REFERENCE_TYPE}")
                 await query.message.reply_text("Извините, руководство в настоящее время недоступно. Пожалуйста, свяжитесь с администратором.", parse_mode=ParseMode.MARKDOWN)
