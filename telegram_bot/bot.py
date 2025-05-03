@@ -1,20 +1,15 @@
 import os
-
+import json
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-
-import logging
-import json
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.error import BadRequest
 
 # --- Configuration ---
-# It's recommended to use environment variables for sensitive data
-BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")  # Replace with your Bot Token
-TARGET_CHANNEL_USERNAME = os.environ.get("TARGET_CHANNEL_USERNAME", "@YourChannelUsername")  # Replace with your Channel Username (e.g., @mychannel)
-ADMIN_USER_IDS = os.environ.get("ADMIN_USER_IDS", "").split(",")  # Comma-separated list of admin User IDs
+# Load configuration from environment variables
+BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TARGET_CHANNEL_USERNAME = os.environ["TARGET_CHANNEL_USERNAME"] 
+ADMIN_USER_IDS = os.environ["ADMIN_USER_IDS"].split(",")
 GUIDE_CONFIG_FILE = "telegram_bot/guide_config.json"
 
 # --- Logging Setup ---
@@ -163,7 +158,6 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             if document.mime_type == "application/pdf" or document.file_name.endswith(".pdf"):
                 file_id = document.file_id
                 save_guide_config(file_id, "file_id")
-                global GUIDE_REFERENCE, REFERENCE_TYPE
                 GUIDE_REFERENCE = file_id
                 REFERENCE_TYPE = "file_id"
                 await update.message.reply_text("✅ Guide updated successfully. I will now send this PDF to verified subscribers.")
@@ -178,7 +172,6 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Basic URL validation (can be improved)
         if url.startswith("http://") or url.startswith("https://"):
             save_guide_config(url, "url")
-            global GUIDE_REFERENCE, REFERENCE_TYPE
             GUIDE_REFERENCE = url
             REFERENCE_TYPE = "url"
             await update.message.reply_text("✅ Guide link updated successfully. I will now send this link to verified subscribers.")
@@ -208,7 +201,7 @@ def main() -> None:
 
     logger.info("Starting bot polling...")
     # Run the bot until the user presses Ctrl-C
-    application.run_polling(allowed_updates=Update.ALL)
+    application.run_polling()
 
 
 if __name__ == "__main__":
