@@ -16,6 +16,7 @@ BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TARGET_CHANNEL_USERNAME = os.environ.get("TARGET_CHANNEL_USERNAME", "") # Make TARGET_CHANNEL_USERNAME optional
 ADMIN_USER_IDS = os.environ["ADMIN_USER_IDS"].split(",")
 GUIDE_CONFIG_FILE = "telegram_bot/guide_config.json"
+GUIDE_TOPIC = os.environ.get("GUIDE_TOPIC", "Default Topic") # Add GUIDE_TOPIC configuration
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -59,7 +60,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"User {user.id} ({user.username}) started the bot.")
 
     welcome_text = (
-        f"Привет! 👋 Этот бот предоставляет **[Ваша Тема] Руководство**, эксклюзивно для подписчиков **{TARGET_CHANNEL_USERNAME}**.\n\n"
+        f"Привет! 👋 Этот бот предоставляет **{GUIDE_TOPIC} Руководство**, эксклюзивно для подписчиков **{TARGET_CHANNEL_USERNAME}**.\n\n"
         f"➡️ Нажмите кнопку ниже, чтобы подтвердить подписку и получить руководство.\n\n"
         f"*Если вы еще не подписаны, пожалуйста, сначала присоединитесь к **{TARGET_CHANNEL_USERNAME}**, затем нажмите кнопку.*"
     )
@@ -164,11 +165,44 @@ def main() -> None:
     application.add_handler(CommandHandler("setguide", set_guide))
 
     # Add error handler (optional but recommended)
-    # application.add_error_handler(error_handler) # Define an error_handler function if needed
+    # Add error handler (optional but recommended)
+    application.add_error_handler(error_handler)
 
     logger.info("Starting bot polling...")
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the developer."""
+    # Log the error before we do anything else, so we have it even if an error occurs while handling it.
+    logger.error("Exception while handling an update:", exc_info=context.error)
+
+    # traceback.format_exception returns the usual python traceback, but as a list of strings
+    # and we want to send it in one message
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+
+    # Build the message with some markup and additional information about the update to make it easier to compare
+    # seemingly unrelated errors.
+    update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    message = (
+        f"An exception was raised while handling an update\n"
+        f"<pre>update = {html.escape(json.dumps(update_str, indent=2))}"
+        "</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>{html.escape(tb_string)}</pre>"
+    )
+
+    # Send the error message to the admin
+    for admin_id in ADMIN_USER_IDS:
+        try:
+            await context.bot.send_message(
+                chat_id=admin_id, text=message, parse_mode=ParseMode.HTML
+            )
+        except Exception:
+            logger.error("Could not send exception tree to admin", exc_info=True)
+
 
 
 if __name__ == "__main__":

@@ -22,87 +22,87 @@ This document outlines the steps required to develop, test, and deploy the Teleg
     *   [x] Create `telegram_bot/requirements.txt`.
 *   [ ] **Version Control:**
     *   [x] Initialize Git repository in the project root (`/Users/mikitakavaliou/projects/aribot` or a dedicated subfolder if preferred).
-    *   [ ] Create a `.gitignore` file (e.g., for `__pycache__`, `.env`, virtual environment folders).
+    *   [X] Create a `.gitignore` file (e.g., for `__pycache__`, `.env`, virtual environment folders).
     *   [x] Make initial commit.
 *   [ ] **Python Environment:**
     *   [ ] Set up a virtual environment (e.g., `python -m venv venv`).
     *   [ ] Activate the virtual environment.
-*   [ ] **Dependencies:**
-    *   [ ] Add `python-telegram-bot` to `requirements.txt`.
+*   [X] **Dependencies:**
+    *   [X] Add `python-telegram-bot` to `requirements.txt`.
     *   [ ] Install dependencies: `pip install -r telegram_bot/requirements.txt`.
-*   [ ] **Telegram Bot Setup:**
-    *   [ ] Create the bot using BotFather on Telegram.
-    *   [ ] Obtain the **Bot Token**.
-    *   [ ] Set the bot's name (using suggestions from the description doc).
-*   [ ] **Configuration:**
-    *   [ ] Decide on configuration method (environment variables recommended, or a config file).
-    *   [ ] Securely store/set the `BOT_TOKEN`.
-    *   [ ] Define `ADMIN_USER_IDS` (comma-separated string of admin Telegram User IDs).
-    *   [ ] Define `[Your Topic]` placeholder value.
-    *   [ ] Decide on persistence method for the guide reference (e.g., simple text file, JSON file, database). Create placeholder if needed (e.g., `guide_config.json`).
+*   [x] **Telegram Bot Setup:**
+    *   [x] Create the bot using BotFather on Telegram.
+    *   [x] Obtain the **Bot Token**.
+    *   [x] Set the bot's name (using suggestions from the description doc).
+*   [X] **Configuration:**
+    *   [X] Decide on configuration method (environment variables recommended, or a config file).
+    *   [X] Securely store/set the `BOT_TOKEN`.
+    *   [X] Define `ADMIN_USER_IDS` (comma-separated string of admin Telegram User IDs).
+    *   [X] Define `[Your Topic]` placeholder value.
+    *   [X] Decide on persistence method for the guide reference (e.g., simple text file, JSON file, database). Create placeholder if needed (e.g., `guide_config.json`).
 
 ---
 
 ## Phase 2: Core Bot Development (`telegram_bot/bot.py`)
 
-*   [ ] **Basic Application Setup:**
-    *   [ ] Import necessary libraries (`os`, `json`, `logging`, `telegram`, `telegram.ext`).
-    *   [ ] Set up basic logging configuration.
-    *   [ ] Load configuration (token, admin IDs).
-    *   [ ] Implement logic to load the current guide reference (file_id/URL) from persistence on startup.
-    *   [ ] Create the `telegram.ext.Application` instance.
-*   [ ] **`/start` Command Handler:**
-    *   [ ] Implement the `start` function.
-    *   [ ] Construct the welcome message using text from the description doc (Phase 2, Item 2).
-    *   [ ] Create the `InlineKeyboardMarkup` with the "Get Guide" button (callback data: `get_guide`).
-    *   [ ] Send the welcome message with the inline button.
-    *   [ ] Register the `CommandHandler` for "start".
-*   [ ] **Button Callback Handler:**
-    *   [ ] Implement the `button_callback` function.
-    *   [ ] Register the `CallbackQueryHandler`.
-    *   [ ] Answer the callback query (`query.answer(...)`) for responsiveness.
-    *   [ ] Check if `callback_data` is `get_guide`.
-*   [ ] **Provide Guide Logic:**
-    *   [ ] Inside the callback handler, get `user_id`.
-    *   [ ] Retrieve the currently stored guide reference (file_id or URL) from memory/persistence.
-    *   [ ] Construct the success message (Phase 2, Item 3 - Message 1).
-    *   [ ] Send the success message.
-    *   [ ] If a `file_id` is stored, use `context.bot.send_document(chat_id=user_id, document=stored_file_id)`.
-    *   [ ] If a URL is stored, send a message containing the URL.
-    *   [ ] Handle the case where no guide has been set yet by the admin.
-*   [ ] **Error Handling:**
-    *   [ ] Implement specific error handling within the `try...except` block for potential API errors.
-    *   [ ] Log errors effectively.
-    *   [ ] Send user-friendly error messages when appropriate (e.g., "Sorry, an error occurred...").
-*   [ ] **Admin Command Handler (`/setguide`):**
-    *   [ ] Implement the `set_guide` function.
-    *   [ ] Register the `CommandHandler` for "setguide".
-    *   [ ] Implement admin check: Verify `update.effective_user.id` is in the configured `ADMIN_USER_IDS`. Reject if not.
-    *   [ ] **Method 1 (File ID):**
-        *   [ ] Check if the command message is a reply (`update.message.reply_to_message`).
-        *   [ ] Check if the replied-to message contains a document (`reply_to_message.document`).
-        *   [ ] Check if the document is a PDF (check `mime_type` or filename extension).
-        *   [ ] Extract the `file_id` (`reply_to_message.document.file_id`).
-        *   [ ] Store the `file_id` persistently (overwrite previous value).
-        *   [ ] Send confirmation message to admin.
-    *   [ ] **Method 2 (URL):**
-        *   [ ] Check if the command has arguments (`context.args`).
-        *   [ ] Validate if the argument looks like a URL (basic check).
-        *   [ ] Store the URL persistently (overwrite previous value).
-        *   [ ] Send confirmation message to admin.
-    *   [ ] **Error Handling:** Implement checks and messages for incorrect usage (no reply/args, not PDF, not admin) as per the description doc.
-*   [ ] **Persistence Logic:**
-    *   [ ] Implement functions to save the guide reference (file_id/URL) to the chosen persistent storage (e.g., writing to `guide_config.json`).
-    *   [ ] Implement function to load the guide reference on bot startup.
-*   [ ] **Logging:**
-    *   [ ] Add informative log messages for key events (start, button click, errors, admin commands).
+*   [X] **Basic Application Setup:**
+    *   [X] Import necessary libraries (`os`, `json`, `logging`, `telegram`, `telegram.ext`).
+    *   [X] Set up basic logging configuration.
+    *   [X] Load configuration (token, admin IDs).
+    *   [X] Implement logic to load the current guide reference (file_id/URL) from persistence on startup.
+    *   [X] Create the `telegram.ext.Application` instance.
+*   [X] **`/start` Command Handler:**
+    *   [X] Implement the `start` function.
+    *   [X] Construct the welcome message using text from the description doc (Phase 2, Item 2).
+    *   [X] Create the `InlineKeyboardMarkup` with the "Get Guide" button (callback data: `get_guide`).
+    *   [X] Send the welcome message with the inline button.
+    *   [X] Register the `CommandHandler` for "start".
+*   [X] **Button Callback Handler:**
+    *   [X] Implement the `button_callback` function.
+    *   [X] Register the `CallbackQueryHandler`.
+    *   [X] Answer the callback query (`query.answer(...)`) for responsiveness.
+    *   [X] Check if `callback_data` is `get_guide`.
+*   [X] **Provide Guide Logic:**
+    *   [X] Inside the callback handler, get `user_id`.
+    *   [X] Retrieve the currently stored guide reference (file_id or URL) from memory/persistence.
+    *   [X] Construct the success message (Phase 2, Item 3 - Message 1).
+    *   [X] Send the success message.
+    *   [X] If a `file_id` is stored, use `context.bot.send_document(chat_id=user_id, document=stored_file_id)`.
+    *   [X] If a URL is stored, send a message containing the URL.
+    *   [X] Handle the case where no guide has been set yet by the admin.
+*   [X] **Error Handling:**
+    *   [X] Implement specific error handling within the `try...except` block for potential API errors.
+    *   [X] Log errors effectively.
+    *   [X] Send user-friendly error messages when appropriate (e.g., "Sorry, an error occurred...").
+*   [X] **Admin Command Handler (`/setguide`):**
+    *   [X] Implement the `set_guide` function.
+    *   [X] Register the `CommandHandler` for "setguide".
+    *   [X] Implement admin check: Verify `update.effective_user.id` is in the configured `ADMIN_USER_IDS`. Reject if not.
+    *   [X] **Method 1 (File ID):**
+        *   [X] Check if the command message is a reply (`update.message.reply_to_message`).
+        *   [X] Check if the replied-to message contains a document (`reply_to_message.document`).
+        *   [X] Check if the document is a PDF (check `mime_type` or filename extension).
+        *   [X] Extract the `file_id` (`reply_to_message.document.file_id`).
+        *   [X] Store the `file_id` persistently (overwrite previous value).
+        *   [X] Send confirmation message to admin.
+    *   [X] **Method 2 (URL):**
+        *   [X] Check if the command has arguments (`context.args`).
+        *   [X] Validate if the argument looks like a URL (basic check).
+        *   [X] Store the URL persistently (overwrite previous value).
+        *   [X] Send confirmation message to admin.
+    *   [X] **Error Handling:** Implement checks and messages for incorrect usage (no reply/args, not PDF, not admin) as per the description doc.
+*   [X] **Persistence Logic:**
+    *   [X] Implement functions to save the guide reference (file_id/URL) to the chosen persistent storage (e.g., writing to `guide_config.json`).
+    *   [X] Implement function to load the guide reference on bot startup.
+*   [X] **Logging:**
+    *   [X] Add informative log messages for key events (start, button click, errors, admin commands).
 
 ---
 
 ## Phase 3: Refinement & Testing
 
-*   [ ] **Code Review & Cleanup:**
-    *   [ ] Ensure all placeholders (`[Your Topic]`, etc.) are correctly replaced or loaded from config.
+*   [X] **Code Review & Cleanup:**
+    *   [X] Ensure all placeholders (`[Your Topic]`, etc.) are correctly replaced or loaded from config.
     *   [ ] Review code for clarity, efficiency, and adherence to Python best practices.
     *   [ ] Add comments where necessary.
 *   [ ] **Functional Testing (Manual):**
