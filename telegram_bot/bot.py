@@ -1,14 +1,18 @@
-import os
+i6mport os
 import json
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.error import BadRequest
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # --- Configuration ---
 # Load configuration from environment variables
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
-TARGET_CHANNEL_USERNAME = os.environ["TARGET_CHANNEL_USERNAME"] 
+TARGET_CHANNEL_USERNAME = os.environ.get("TARGET_CHANNEL_USERNAME", "") # Make TARGET_CHANNEL_USERNAME optional
 ADMIN_USER_IDS = os.environ["ADMIN_USER_IDS"].split(",")
 GUIDE_CONFIG_FILE = "telegram_bot/guide_config.json"
 
@@ -80,65 +84,27 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await query.answer("Checking subscription...")
 
     if callback_data == "check_subscription":
-        try:
-            # Check membership status
-            member = await context.bot.get_chat_member(chat_id=TARGET_CHANNEL_USERNAME, user_id=user_id)
+        # The channel membership check has been removed as per user request.
+        # The bot will now send the guide to anyone who clicks the button.
 
-            # Check if the user is a member (status can be 'member', 'administrator', 'creator')
-            # Statuses like 'left' or 'kicked' mean they are not currently a member.
-            if member.status in ['member', 'administrator', 'creator']:
-                logger.info(f"User {user_id} ({username}) IS subscribed to {TARGET_CHANNEL_USERNAME}.")
-                await query.message.reply_text("Great! Thanks for being a subscriber! ✅", parse_mode=ParseMode.MARKDOWN)
+        await query.message.reply_text("Thanks for your interest! ✅", parse_mode=ParseMode.MARKDOWN)
 
-                if GUIDE_REFERENCE:
-                    if REFERENCE_TYPE == "file_id":
-                        try:
-                            await context.bot.send_document(chat_id=user_id, document=GUIDE_REFERENCE)
-                        except Exception as e:
-                            logger.error(f"Error sending document to user {user_id}: {e}")
-                            await query.message.reply_text("Sorry, there was an error sending the guide. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
+        if GUIDE_REFERENCE:
+            if REFERENCE_TYPE == "file_id":
+                try:
+                    await context.bot.send_document(chat_id=user_id, document=GUIDE_REFERENCE)
+                except Exception as e:
+                    logger.error(f"Error sending document to user {user_id}: {e}")
+                    await query.message.reply_text("Sorry, there was an error sending the guide. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
 
-                    elif REFERENCE_TYPE == "url":
-                        await query.message.reply_text(f"Here is the guide link you requested:\n{GUIDE_REFERENCE}", parse_mode=ParseMode.MARKDOWN)
-                    else:
-                        logger.warning(f"Invalid REFERENCE_TYPE: {REFERENCE_TYPE}")
-                        await query.message.reply_text("Sorry, the guide is currently unavailable. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
-                else:
-                    logger.info("No guide has been set yet.")
-                    await query.message.reply_text("Sorry, the guide is currently unavailable. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
-
+            elif REFERENCE_TYPE == "url":
+                await query.message.reply_text(f"Here is the guide link you requested:\n{GUIDE_REFERENCE}", parse_mode=ParseMode.MARKDOWN)
             else:
-                logger.info(f"User {user_id} ({username}) IS NOT subscribed to {TARGET_CHANNEL_USERNAME} (status: {member.status}).")
-                denial_message = (
-                    f"Access denied! ❌\n\n"
-                    f"It looks like you haven't joined our channel **{TARGET_CHANNEL_USERNAME}** yet.\n\n"
-                    f"Please subscribe here first: **{TARGET_CHANNEL_USERNAME}**\n\n"  # Consider adding the full t.me link too
-                    f"Once you've joined, come back and click the 'Verify Subscription & Get Guide' button again!"
-                )
-                # Send the denial message as a reply to the original message
-                await query.message.reply_text(denial_message, parse_mode=ParseMode.MARKDOWN)
-
-        except BadRequest as e:
-            # Handle potential errors, e.g., bot not admin in the channel, channel not found, user not found
-            logger.error(f"Error checking membership for user {user_id} in {TARGET_CHANNEL_USERNAME}: {e}")
-            if "user not found" in str(e).lower():
-                # This can happen if the user has never interacted with the channel
-                logger.info(f"User {user_id} ({username}) likely not found in channel {TARGET_CHANNEL_USERNAME}.")
-                denial_message = (
-                    f"Access denied! ❌\n\n"
-                    f"It looks like you haven't joined our channel **{TARGET_CHANNEL_USERNAME}** yet, or I couldn't verify your status.\n\n"
-                    f"Please subscribe here first: **{TARGET_CHANNEL_USERNAME}**\n\n"
-                    f"Once you've joined, come back and click the 'Verify Subscription & Get Guide' button again!"
-                )
-                await query.message.reply_text(denial_message, parse_mode=ParseMode.MARKDOWN)
-            elif "chat not found" in str(e).lower() or "bot is not a member" in str(e).lower():
-                logger.error(f"CRITICAL: Bot cannot access channel {TARGET_CHANNEL_USERNAME}. Is it an admin?")
-                await query.message.reply_text("Sorry, there was an internal error checking the channel. Please contact the administrator.")
-            else:
-                await query.message.reply_text("Sorry, an error occurred while checking your subscription status. Please try again later.")
-        except Exception as e:
-            logger.error(f"Unexpected error during callback query for user {user_id}: {e}", exc_info=True)
-            await query.message.reply_text("An unexpected error occurred. Please try again later.")
+                logger.warning(f"Invalid REFERENCE_TYPE: {REFERENCE_TYPE}")
+                await query.message.reply_text("Sorry, the guide is currently unavailable. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
+        else:
+            logger.info("No guide has been set yet.")
+            await query.message.reply_text("Sorry, the guide is currently unavailable. Please contact the administrator.", parse_mode=ParseMode.MARKDOWN)
 
     else:
         logger.warning(f"Received unknown callback data: {callback_data}")

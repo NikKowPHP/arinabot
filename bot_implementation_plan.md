@@ -1,6 +1,6 @@
-# Telegram Subscriber Bot - Implementation Plan
+# Telegram Guide Bot - Implementation Plan
 
-This document outlines the steps required to develop, test, and deploy the subscriber-only Telegram guide bot.
+This document outlines the steps required to develop, test, and deploy the Telegram guide bot.
  pip3: Always prefer using python3 and pip3 to avoid conflicts with the older system Python 2 (if present).
 
 
@@ -37,56 +37,41 @@ This document outlines the steps required to develop, test, and deploy the subsc
 *   [ ] **Configuration:**
     *   [ ] Decide on configuration method (environment variables recommended, or a config file).
     *   [ ] Securely store/set the `BOT_TOKEN`.
-    *   [ ] Define `TARGET_CHANNEL_USERNAME` (e.g., `@YourChannelUsername`).
     *   [ ] Define `ADMIN_USER_IDS` (comma-separated string of admin Telegram User IDs).
     *   [ ] Define `[Your Topic]` placeholder value.
     *   [ ] Decide on persistence method for the guide reference (e.g., simple text file, JSON file, database). Create placeholder if needed (e.g., `guide_config.json`).
-*   [ ] **Channel Integration:**
-    *   [ ] Add the created bot as an **administrator** to the target Telegram channel.
-    *   [ ] Ensure the bot has permission to "manage chat" or at least view members.
 
 ---
 
 ## Phase 2: Core Bot Development (`telegram_bot/bot.py`)
 
 *   [ ] **Basic Application Setup:**
-    *   [ ] Import necessary libraries (`os`, `logging`, `telegram`, `telegram.ext`).
+    *   [ ] Import necessary libraries (`os`, `json`, `logging`, `telegram`, `telegram.ext`).
     *   [ ] Set up basic logging configuration.
-    *   [ ] Load configuration (token, channel ID, admin IDs).
+    *   [ ] Load configuration (token, admin IDs).
     *   [ ] Implement logic to load the current guide reference (file_id/URL) from persistence on startup.
     *   [ ] Create the `telegram.ext.Application` instance.
 *   [ ] **`/start` Command Handler:**
     *   [ ] Implement the `start` function.
     *   [ ] Construct the welcome message using text from the description doc (Phase 2, Item 2).
-    *   [ ] Create the `InlineKeyboardMarkup` with the "Verify Subscription & Get Guide" button (callback data: `check_subscription`).
+    *   [ ] Create the `InlineKeyboardMarkup` with the "Get Guide" button (callback data: `get_guide`).
     *   [ ] Send the welcome message with the inline button.
     *   [ ] Register the `CommandHandler` for "start".
 *   [ ] **Button Callback Handler:**
     *   [ ] Implement the `button_callback` function.
     *   [ ] Register the `CallbackQueryHandler`.
     *   [ ] Answer the callback query (`query.answer(...)`) for responsiveness.
-    *   [ ] Check if `callback_data` is `check_subscription`.
-*   [ ] **Subscription Check Logic:**
-    *   [ ] Inside the callback handler, get `user_id` and `chat_id` (`TARGET_CHANNEL_USERNAME`).
-    *   [ ] Call `context.bot.get_chat_member(chat_id=TARGET_CHANNEL_USERNAME, user_id=user_id)`.
-    *   [ ] Use a `try...except` block to handle potential `telegram.error.BadRequest` and other exceptions.
-*   [ ] **Handle Subscribed User:**
-    *   [ ] Check if `member.status` is `member`, `administrator`, or `creator`.
+    *   [ ] Check if `callback_data` is `get_guide`.
+*   [ ] **Provide Guide Logic:**
+    *   [ ] Inside the callback handler, get `user_id`.
     *   [ ] Retrieve the currently stored guide reference (file_id or URL) from memory/persistence.
-    *   [ ] Construct the success message (Phase 2, Item 3, Scenario A - Message 1).
+    *   [ ] Construct the success message (Phase 2, Item 3 - Message 1).
     *   [ ] Send the success message.
     *   [ ] If a `file_id` is stored, use `context.bot.send_document(chat_id=user_id, document=stored_file_id)`.
     *   [ ] If a URL is stored, send a message containing the URL.
     *   [ ] Handle the case where no guide has been set yet by the admin.
-*   [ ] **Handle Non-Subscribed User:**
-    *   [ ] Handle cases where `member.status` is `left`, `kicked`, or the `get_chat_member` call fails with "user not found".
-    *   [ ] Construct the denial message (Phase 2, Item 3, Scenario B).
-    *   [ ] Send the denial message.
 *   [ ] **Error Handling:**
-    *   [ ] Implement specific error handling within the `try...except` block for:
-        *   Bot not admin / chat not found (`BadRequest`).
-        *   User not found (`BadRequest`).
-        *   Other potential API errors.
+    *   [ ] Implement specific error handling within the `try...except` block for potential API errors.
     *   [ ] Log errors effectively.
     *   [ ] Send user-friendly error messages when appropriate (e.g., "Sorry, an error occurred...").
 *   [ ] **Admin Command Handler (`/setguide`):**
@@ -110,7 +95,7 @@ This document outlines the steps required to develop, test, and deploy the subsc
     *   [ ] Implement functions to save the guide reference (file_id/URL) to the chosen persistent storage (e.g., writing to `guide_config.json`).
     *   [ ] Implement function to load the guide reference on bot startup.
 *   [ ] **Logging:**
-    *   [ ] Add informative log messages for key events (start, button click, subscription check result, errors, admin commands).
+    *   [ ] Add informative log messages for key events (start, button click, errors, admin commands).
 
 ---
 
@@ -122,10 +107,8 @@ This document outlines the steps required to develop, test, and deploy the subsc
     *   [ ] Add comments where necessary.
 *   [ ] **Functional Testing (Manual):**
     *   [ ] Test `/start` command: Does the welcome message and button appear correctly?
-    *   [ ] Test Scenario A (Subscribed): Join the channel, start the bot, click the button. Does the success message and link appear?
-    *   [ ] Test Scenario B (Not Subscribed): Leave the channel (or use an account that hasn't joined), start the bot, click the button. Does the denial message appear?
-    *   [ ] Test joining *after* clicking the button while unsubscribed, then clicking again.
-    *   [ ] Test user flow when no guide has been set by the admin yet.
+    *   [ ] Test user flow when a guide is set: Click the button, does the guide appear?
+    *   [ ] Test user flow when no guide has been set yet by the admin yet.
 *   [ ] **Admin Command Testing:**
     *   [ ] Test `/setguide` by replying to a PDF: Does it store the file_id and confirm?
     *   [ ] Test `/setguide <URL>`: Does it store the URL and confirm?
@@ -138,9 +121,6 @@ This document outlines the steps required to develop, test, and deploy the subsc
     *   [ ] Restart the bot.
     *   [ ] Test the user flow: Does the bot remember and send the previously set guide?
 *   [ ] **Edge Case Testing:**
-    *   [ ] Test with a user who has never interacted with the channel.
-    *   [ ] Test what happens if the bot is removed as admin from the channel.
-    *   [ ] Test with an invalid `TARGET_CHANNEL_USERNAME`.
     *   [ ] Test rapid button clicks.
 *   [ ] **Error Message Testing:**
     *   [ ] Simulate error conditions (if possible) to verify user-facing error messages.
@@ -158,7 +138,7 @@ This document outlines the steps required to develop, test, and deploy the subsc
     *   [ ] Clone the Git repository.
     *   [ ] Set up a production virtual environment.
     *   [ ] Install dependencies (`pip install -r telegram_bot/requirements.txt`).
-    *   [ ] Configure **production** environment variables/config file (BOT_TOKEN, TARGET_CHANNEL_USERNAME, ADMIN_USER_IDS). **Do not commit sensitive data.**
+    *   [ ] Configure **production** environment variables/config file (BOT_TOKEN, ADMIN_USER_IDS). **Do not commit sensitive data.**
     *   [ ] Ensure the persistence file/mechanism is correctly set up with appropriate permissions in production.
 *   [ ] **Process Management:**
     *   [ ] If using a VPS/server, configure a process manager (like `systemd` or `supervisor`) to:
