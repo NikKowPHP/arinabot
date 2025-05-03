@@ -74,14 +74,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     logger.info(f"User {user.id} ({user.username}) started the bot via /start.")
     # Make sure TARGET_CHANNEL_USERNAME is defined or handled if missing
-    target_channel = os.environ.get("TARGET_CHANNEL_USERNAME", "the channel") # Example fallback
+    target_channel = os.environ.get("TARGET_CHANNEL_USERNAME", "the channel")  # Example fallback
     welcome_text = (
-        f"Привет! 👋 Этот бот предоставляет **{GUIDE_TOPIC} Руководство**, эксклюзивно для подписчиков **{target_channel}**.\n\n"
+        f"Привет! 👋 Этот бот предоставляет **{GUIDE_TOPIC}** Руководство, эксклюзивно для подписчиков **{target_channel}**.\n\n"
         f"➡️ Нажмите кнопку ниже, чтобы подтвердить подписку и получить руководство.\n\n"
         f"*Если вы еще не подписаны, пожалуйста, сначала присоединитесь к **{target_channel}**, затем нажмите кнопку.*"
     )
     keyboard = [
-        [InlineKeyboardButton("✅ Подтвердить подписку и получить руководство", callback_data="check_subscription")]
+        [
+            InlineKeyboardButton(
+                "✅ Подтвердить подписку и получить руководство",
+                callback_data="check_subscription",
+            )
+        ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
@@ -156,6 +161,23 @@ async def set_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await update.message.reply_text("Использование: Ответьте на сообщение с PDF, используя `/setguide`, или используйте `/setguide <URL>`.")
 
+async def set_topic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global GUIDE_TOPIC
+    user = update.effective_user
+    if not is_admin(user.id):
+        await update.message.reply_text("❌ Извините, эта команда доступна только администраторам бота.")
+        return
+
+    if context.args:
+        topic = " ".join(context.args)  # Join multiple arguments into one topic string
+        GUIDE_TOPIC = topic
+        # Ideally, update the environment variable as well, but this might not be possible in all environments
+        # Consider saving to a config file if persistent storage is needed
+        await update.message.reply_text(f"✅ Тема руководства успешно обновлена на: {topic}")
+        logger.info(f"Admin {user.id} set guide topic to: {topic}")
+    else:
+        await update.message.reply_text("Использование: `/settopic <topic>`")
+
 
 # --- Error Handler (Keep as is, ensure `html` is imported) ---
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -200,6 +222,7 @@ async def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_callback))
     application.add_handler(CommandHandler("setguide", set_guide))
+    application.add_handler(CommandHandler("settopic", set_topic))
     # Optional: Add a TypeHandler to process incoming Updates from the webhook
     # This is often done within the web server handler itself
     application.add_error_handler(error_handler)
