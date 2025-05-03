@@ -1,6 +1,8 @@
 # Telegram Subscriber Bot - Implementation Plan
 
 This document outlines the steps required to develop, test, and deploy the subscriber-only Telegram guide bot.
+ pip3: Always prefer using python3 and pip3 to avoid conflicts with the older system Python 2 (if present).
+
 
 **Project Files:**
 *   `telegram_subscriber_bot_description.md`: Bot specifications and messages.
@@ -16,12 +18,12 @@ This document outlines the steps required to develop, test, and deploy the subsc
 *   [ ] **Finalize Project Structure:**
     *   [X] Create `telegram_bot/` directory.
     *   [X] Create placeholder `telegram_bot/guide.pdf`.
-    *   [ ] Create `telegram_bot/bot.py` (initial structure started).
-    *   [ ] Create `telegram_bot/requirements.txt`.
+    *   [x] Create `telegram_bot/bot.py` (initial structure started).
+    *   [x] Create `telegram_bot/requirements.txt`.
 *   [ ] **Version Control:**
-    *   [ ] Initialize Git repository in the project root (`/Users/mikitakavaliou/projects/aribot` or a dedicated subfolder if preferred).
+    *   [x] Initialize Git repository in the project root (`/Users/mikitakavaliou/projects/aribot` or a dedicated subfolder if preferred).
     *   [ ] Create a `.gitignore` file (e.g., for `__pycache__`, `.env`, virtual environment folders).
-    *   [ ] Make initial commit.
+    *   [x] Make initial commit.
 *   [ ] **Python Environment:**
     *   [ ] Set up a virtual environment (e.g., `python -m venv venv`).
     *   [ ] Activate the virtual environment.
